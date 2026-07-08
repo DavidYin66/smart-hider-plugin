@@ -1,0 +1,134 @@
+/* ============================================================
+   SmartHider — Content Script 样式表
+   通过 manifest.json 的 content_scripts 配置注入到每个网页中。
+
+   这些样式直接作用于网页的 DOM，用于：
+   1. 选择模式下的鼠标光标变化
+   2. hover 高亮效果
+   3. 元素隐藏
+   4. 浮动提示框（tooltip）
+   5. Toast 通知
+   ============================================================ */
+
+/* ── 选择模式下的鼠标光标 ──────────────────────────────────
+   当 body 被添加 smarthider-picking class 时（由 content.js 控制），
+   整个页面（包括所有子元素 *）的鼠标光标变为十字准星。
+   !important 确保覆盖网页自身设置的 cursor 样式。
+   ───────────────────────────────────────────────────────── */
+body.smarthider-picking,
+body.smarthider-picking * {
+  cursor: crosshair !important;
+}
+
+/* ── 元素 hover 高亮样式 ───────────────────────────────────
+   当用户在选择模式下 hover 一个元素时，content.js 给该元素
+   添加 smarthider-highlight class。
+
+   使用 outline 而不是 border：
+     - outline 不占文档流空间，不会挤压其他元素导致页面抖动
+     - outline-offset: -1px 让 outline 往内收一点，视觉更贴合
+
+   box-shadow 的 inset 0 0 0 9999px 技巧：
+     - 用极大的扩展值填充整个元素内部
+     - 配合低透明度 (0.06) 实现淡紫色半透明遮罩效果
+   ───────────────────────────────────────────────────────── */
+.smarthider-highlight {
+  outline: 2px solid rgba(124, 108, 240, 0.9) !important;
+  outline-offset: -1px !important;
+  box-shadow: inset 0 0 0 9999px rgba(124, 108, 240, 0.06) !important;
+  transition: outline-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+/* ── 被隐藏的元素 ──────────────────────────────────────────
+   content.js 通过添加这个 class 来隐藏元素。
+   display: none 会让元素完全从页面上消失（不占空间）。
+   !important 确保覆盖网页自身的 display 样式。
+   ───────────────────────────────────────────────────────── */
+.smarthider-hidden {
+  display: none !important;
+}
+
+/* ── 浮动提示框（Tooltip） ────────────────────────────────
+   这是 content.js 动态创建的一个 <div>，跟随鼠标移动。
+   显示当前 hover 元素的选择器信息（如 <div#banner.ad>）。
+
+   position: fixed   → 相对于视口定位（不随页面滚动）
+   z-index: 2147483647 → 32 位整数最大值，确保不被任何元素遮挡
+   pointer-events: none → 鼠标事件穿透它，不影响用户选择下方的元素
+   backdrop-filter: blur(8px) → 毛玻璃背景模糊效果
+
+   默认 opacity: 0 隐藏，添加 .visible class 后淡入显示。
+   ───────────────────────────────────────────────────────── */
+#smarthider-tooltip {
+  position: fixed;
+  z-index: 2147483647;
+  padding: 6px 12px;
+  background: rgba(15, 15, 26, 0.92);        /* 深色半透明背景 */
+  backdrop-filter: blur(8px);                 /* 毛玻璃模糊 */
+  -webkit-backdrop-filter: blur(8px);         /* Safari 兼容前缀 */
+  color: #e8e8f0;                             /* 浅色文字 */
+  font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;  /* 等宽字体显示选择器 */
+  font-size: 11px;
+  line-height: 1.4;
+  border-radius: 6px;
+  border: 1px solid rgba(124, 108, 240, 0.4); /* 浅紫色边框 */
+  pointer-events: none;                       /* 鼠标事件穿透 */
+  white-space: nowrap;                        /* 不换行 */
+  max-width: 340px;
+  overflow: hidden;
+  text-overflow: ellipsis;                    /* 超长文本显示省略号 */
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  /* 默认隐藏状态 */
+  opacity: 0;
+  transform: translateY(4px);                /* 初始位置略微下移 */
+  transition: opacity 0.15s ease, transform 0.15s ease;  /* 淡入动画 */
+}
+
+/* 显示状态：淡入 + 向上移到正常位置 */
+#smarthider-tooltip.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Toast 通知 ────────────────────────────────────────────
+   固定在页面右下角的通知条。
+   用于显示 "选择模式已开启"、"元素已隐藏" 等操作反馈。
+
+   与 tooltip 类似：
+   - fixed 定位 + 最大 z-index
+   - 毛玻璃背景
+   - pointer-events: none（不可点击，纯展示）
+   - 默认隐藏，添加 .visible 后从底部滑入
+   ───────────────────────────────────────────────────────── */
+#smarthider-toast {
+  position: fixed;
+  bottom: 24px;                               /* 距底部 24px */
+  right: 24px;                                /* 距右侧 24px */
+  z-index: 2147483647;
+  padding: 12px 20px;
+  background: rgba(15, 15, 26, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #e8e8f0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
+  border-radius: 10px;
+  border: 1px solid rgba(124, 108, 240, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  /* 默认隐藏：透明 + 向下偏移 */
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+}
+
+/* 显示状态：淡入 + 滑到正常位置 */
+#smarthider-toast.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Toast 中的图标与文字之间的间距 */
+#smarthider-toast .toast-icon {
+  margin-right: 8px;
+}

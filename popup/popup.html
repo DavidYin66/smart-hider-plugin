@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=360">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <!-- ── Header ─────────────────────────────────────── -->
+  <header class="header">
+    <div class="header-left">
+      <img src="../icons/icon48.png" alt="" class="header-logo">
+      <span class="header-title">SmartHider</span>
+    </div>
+    <label class="toggle" title="全局开关">
+      <input type="checkbox" id="globalToggle" checked>
+      <span class="toggle-track"></span>
+      <span class="toggle-knob"></span>
+    </label>
+  </header>
+
+  <!-- ── Pick button ────────────────────────────────── -->
+  <section class="pick-section">
+    <button id="pickBtn" class="pick-btn">
+      <span class="pick-icon">🎯</span>
+      <span id="pickText">开始选择元素</span>
+    </button>
+  </section>
+
+  <!-- ── Rules list ─────────────────────────────────── -->
+  <section class="rules-section">
+    <div class="rules-header">
+      <span class="rules-title">隐藏规则</span>
+      <span class="rules-count" id="rulesCount">0</span>
+    </div>
+    <div class="rules-domain" id="currentDomain">—</div>
+    <div class="rules-list" id="rulesList">
+      <div class="empty-state">
+        <span class="empty-icon">👻</span>
+        <p class="empty-text">还没有隐藏任何元素<br>点击上方按钮开始选择</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Footer ─────────────────────────────────────── -->
+  <footer class="footer">
+    <button id="clearBtn" class="clear-btn" disabled>
+      <span>🗑️</span>
+      <span>清空全部规则</span>
+    </button>
+  </footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>
